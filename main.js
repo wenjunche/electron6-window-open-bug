@@ -12,15 +12,20 @@ function createWindow () {
     width: 800,
     height: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
+      sandbox: true,
+      nativeWindowOpen: true,
     }
   })
 
   // and load the index.html of the app.
-  mainWindow.loadFile('index.html')
+  // mainWindow.loadFile('index.html')
+  mainWindow.loadURL('http://localhost:8081/empty.html')
+
+//  startTheFun();
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+  mainWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
@@ -51,3 +56,43 @@ app.on('activate', function () {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+async function startTheFun() {
+  let count = 1;
+  while (count < 5000) {
+    await f(count);
+    count++;
+  }
+
+}
+
+function f(count) {
+  return new Promise((resolve, reject) => {
+    let w = new BrowserWindow({
+      width: 800,
+      height: 600,
+      webPreferences: {
+        preload: path.join(__dirname, 'preload.js'),
+        sandbox: true,
+        affinity: 'bigw'
+      }
+    })
+    w.webContents.openDevTools()
+    w.webContents.once('dom-ready', ()=> {
+      console.log(`closing window ${count}`);
+      w.close();
+      resolve('all done')
+    })
+    console.log(`creating window ${count}`);
+    w.loadURL('http://localhost:8081/empty.html');  
+  })
+
+  function f2() {
+    const w = window.open('http://localhost:8081/empty.html')
+    setTimeout(() => {
+      w.close()
+      f2()
+    }, 1000)
+    
+  }
+}
